@@ -11,8 +11,8 @@ import java.util.ArrayList;
 public class LoginDataSource {
     private static ArrayList<String> fakeUserList = new ArrayList<>();
     static {
-        fakeUserList.add("admin");
-        fakeUserList.add("user");
+        fakeUserList.add("admin@qq.com");
+        fakeUserList.add("user@163.com");
     }
 
     public Result<LoggedInUser> login(String username, String password) {

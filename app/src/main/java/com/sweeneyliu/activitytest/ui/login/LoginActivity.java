@@ -1,30 +1,24 @@
 package com.sweeneyliu.activitytest.ui.login;
 
-import android.app.Activity;
-
-import androidx.lifecycle.Observer;
-import androidx.lifecycle.ViewModelProvider;
-
+import android.content.Intent;
 import android.os.Bundle;
-
-import androidx.annotation.Nullable;
-import androidx.annotation.StringRes;
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.view.KeyEvent;
+import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
-import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
-import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
-import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.StringRes;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.ViewModelProvider;
+
+import com.google.android.material.textfield.TextInputLayout;
+import com.sweeneyliu.activitytest.MainActivity;
 import com.sweeneyliu.activitytest.R;
-import com.sweeneyliu.activitytest.ui.login.LoginViewModel;
-import com.sweeneyliu.activitytest.ui.login.LoginViewModelFactory;
 import com.sweeneyliu.activitytest.databinding.ActivityLoginBinding;
 
 public class LoginActivity extends AppCompatActivity {
@@ -42,25 +36,44 @@ public class LoginActivity extends AppCompatActivity {
         loginViewModel = new ViewModelProvider(this, new LoginViewModelFactory())
                 .get(LoginViewModel.class);
 
-        final EditText usernameEditText = (EditText) binding.username;
-        final EditText passwordEditText = (EditText) binding.password;
+        final TextInputLayout usernameWrapper = binding.usernameWrapper;
+        final TextInputLayout passwordWrapper = binding.passwordWrapper;
         final Button loginButton = binding.login;
         final ProgressBar loadingProgressBar = binding.loading;
+        final ImageView leftMoegirl = binding.imageMoegirlLeft;
+        final ImageView rightMoegirl = binding.imageMoegirlRight;
+        //当密码框获得焦点时,让22娘和33娘闭眼
+        passwordWrapper.getEditText().setOnFocusChangeListener((v, hasFocus) -> {
+            if (hasFocus) {
+                leftMoegirl.setImageResource(R.drawable.ic_moegirl_22_eyeclosed);
+                rightMoegirl.setImageResource(R.drawable.ic_moegirl_33_eyeclosed);
+                Log.d("LoginActivity", "密码框获得焦点");
+            } else {
+                leftMoegirl.setImageResource(R.drawable.ic_moegirl_22_eyeopened);
+                rightMoegirl.setImageResource(R.drawable.ic_moegirl_33_eyeopened);
+                Log.d("LoginActivity", "密码框失去焦点");
+            }
+        });
 
         //给loginFormState添加观察者,这里使用lambda表达式简化了observer的接口名和抽象方法onChanged的实现
         loginViewModel.getLoginFormState().observe(this, loginFormState -> {
             if (loginFormState == null) {
                 return;
             }
-            //若在form中输入有效的用户名和密码,则loginButton可点击
+            //只有当用户名和密码都合法时,登录按钮才可点击
             loginButton.setEnabled(loginFormState.isDataValid());
-            //若用户名输入不合法,则显示用户名错误码
+
             if (loginFormState.getUsernameError() != null) {
-                usernameEditText.setError(getString(loginFormState.getUsernameError()));
+                usernameWrapper.setErrorEnabled(true);
+                usernameWrapper.setError(getString(loginFormState.getUsernameError()));
+            } else {
+                usernameWrapper.setErrorEnabled(false);
             }
-            //若密码输入不合法,则显示密码错误码
             if (loginFormState.getPasswordError() != null) {
-                passwordEditText.setError(getString(loginFormState.getPasswordError()));
+                passwordWrapper.setErrorEnabled(true);
+                passwordWrapper.setError(getString(loginFormState.getPasswordError()));
+            } else {
+                passwordWrapper.setErrorEnabled(false);
             }
         });
 
@@ -76,12 +89,8 @@ public class LoginActivity extends AppCompatActivity {
             }
             //若登录成功,则更新UI
             if (loginResult.getSuccess() != null) {
-                updateUiWithUser(loginResult.getSuccess());
+                updateUiWithUserLoggedIn(loginResult.getSuccess());
             }
-            setResult(Activity.RESULT_OK);
-
-            //Complete and destroy login activity once successful
-            finish();
         });
 
         TextWatcher afterTextChangedListener = new TextWatcher() {
@@ -97,31 +106,36 @@ public class LoginActivity extends AppCompatActivity {
 
             @Override
             public void afterTextChanged(Editable s) {
-                loginViewModel.loginDataChanged(usernameEditText.getText().toString(),
-                        passwordEditText.getText().toString());
+                loginViewModel.loginDataChanged(usernameWrapper.getEditText().getText().toString(),
+                        passwordWrapper.getEditText().getText().toString());
             }
         };
-        usernameEditText.addTextChangedListener(afterTextChangedListener);
-        passwordEditText.addTextChangedListener(afterTextChangedListener);
-        passwordEditText.setOnEditorActionListener((v, actionId, event) -> {
-            if (actionId == EditorInfo.IME_ACTION_DONE) {
-                loginViewModel.login(usernameEditText.getText().toString(),
-                        passwordEditText.getText().toString());
-            }
-            return false;
-        });
+        usernameWrapper.getEditText().addTextChangedListener(afterTextChangedListener);
+        passwordWrapper.getEditText().addTextChangedListener(afterTextChangedListener);
 
         loginButton.setOnClickListener(v -> {
             loadingProgressBar.setVisibility(View.VISIBLE);
-            loginViewModel.login(usernameEditText.getText().toString(),
-                    passwordEditText.getText().toString());
+            loginViewModel.login(usernameWrapper.getEditText().getText().toString(),
+                    passwordWrapper.getEditText().getText().toString());
         });
+        //软键盘的回车登录功能
+        /*passwordWrapper.getEditText().setOnEditorActionListener((v, actionId, event) -> {
+            if (actionId == EditorInfo.IME_ACTION_DONE) {
+                loginViewModel.login(usernameWrapper.getEditText().getText().toString(),
+                        passwordWrapper.getEditText().getText().toString());
+            }
+            return false;
+        });*/
+
     }
 
-    private void updateUiWithUser(LoggedInUserView model) {
+    private void updateUiWithUserLoggedIn(LoggedInUserView model) {
         String welcome = getString(R.string.welcome) + model.getDisplayName();
-        // TODO : initiate successful logged in experience
         Toast.makeText(getApplicationContext(), welcome, Toast.LENGTH_LONG).show();
+        //用户登录成功后结束当前activity跳转到MainActivity
+        finish();
+        Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+        startActivity(intent);
     }
 
     private void showLoginFailed(@StringRes Integer errorString) {

@@ -42,29 +42,33 @@ public class LoginViewModel extends ViewModel {
     }
 
     public void loginDataChanged(String username, String password) {
-        if (!isUserNameValid(username)) {
-            loginFormState.setValue(new LoginFormState(R.string.invalid_username, null));
-        } else if (!isPasswordValid(password)) {
-            loginFormState.setValue(new LoginFormState(null, R.string.invalid_password));
-        } else {
-            loginFormState.setValue(new LoginFormState(true));
+        if (!isUserNameValid(username) || !isPasswordValid(password)) {
+            if (!isPasswordValid(password)) {
+                loginFormState.setValue(new LoginFormState(null, R.string.invalid_password, false));
+            }
+            if (!isUserNameValid(username)) {
+                loginFormState.setValue(new LoginFormState(R.string.invalid_username, null, false));
+            }
+        }
+        else {
+            loginFormState.setValue(new LoginFormState(null,null,true));
         }
     }
 
-    // A placeholder username validation check
     private boolean isUserNameValid(String username) {
         if (username == null) {
             return false;
         }
+        //只有当用户名包含@时且符合邮箱格式时,才返回true
         if (username.contains("@")) {
             return Patterns.EMAIL_ADDRESS.matcher(username).matches();
         } else {
-            return !username.trim().isEmpty();
+            return false;
         }
     }
 
-    // A placeholder password validation check
     private boolean isPasswordValid(String password) {
-        return password != null && password.trim().length() > 5;
+        //密码非空白字符长度大于5则返回true
+        return password != null && password.trim().length() >= 5;
     }
 }
