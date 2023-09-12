@@ -1,9 +1,9 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
-    <style name="Theme.App.Base" parent="Theme.MaterialComponents.Light.NoActionBar">
+    <style name="Theme.App.Base" parent="Theme.MaterialComponents.NoActionBar">
         <!-- Primary brand color. -->
-        <item name="colorPrimary">@color/green_500</item>
-        <item name="colorPrimaryVariant">@color/green_700</item>
+        <item name="colorPrimary">@color/purple_500</item>
+        <item name="colorPrimaryVariant">@color/purple_700</item>
         <item name="colorOnPrimary">@color/white</item>
         <!-- Secondary brand color. -->
         <item name="colorSecondary">@color/teal_200</item>
@@ -12,8 +12,8 @@
         <!-- Status bar color. -->
         <item name="android:statusBarColor">?attr/colorPrimary</item>
         <!-- Customize your theme here. -->
-        <item name="android:colorBackground">@color/background_day</item>
-        <item name="colorSurface">@color/background_day</item>
+        <item name="android:colorBackground">@color/background_night</item>
+        <item name="colorSurface">@color/background_night</item>
     </style>
 
     <style name="Theme.Splash" parent="Theme.SplashScreen">
@@ -30,10 +30,10 @@
         <!-- Required -->
         <item name="postSplashScreenTheme">@style/Theme.Startup</item>
     </style>
-    <style name="Theme.Startup" parent="Theme.MaterialComponents.Light.NoActionBar">
+    <style name="Theme.Startup" parent="Theme.MaterialComponents.NoActionBar">
 
     </style>
-    <style name="Theme.Login" parent="Theme.MaterialComponents.Light.NoActionBar">
+    <style name="Theme.Login" parent="Theme.MaterialComponents.NoActionBar">
         <item name="colorPrimary">@color/purple_500</item>
         <item name="colorPrimaryVariant">@color/purple_700</item>
         <item name="colorOnPrimary">@color/white</item>

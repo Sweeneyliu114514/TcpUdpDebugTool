@@ -5,7 +5,6 @@ import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
-import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -17,6 +16,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.google.android.material.textfield.TextInputLayout;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.sweeneyliu.activitytest.MainActivity;
 import com.sweeneyliu.activitytest.R;
 import com.sweeneyliu.activitytest.databinding.ActivityLoginBinding;
@@ -25,10 +26,13 @@ public class LoginActivity extends AppCompatActivity {
 
     private LoginViewModel loginViewModel;
     private ActivityLoginBinding binding;
+    private FirebaseAuth mAuth;
+
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        mAuth = FirebaseAuth.getInstance();
 
         binding = ActivityLoginBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
@@ -38,7 +42,8 @@ public class LoginActivity extends AppCompatActivity {
 
         final TextInputLayout usernameWrapper = binding.usernameWrapper;
         final TextInputLayout passwordWrapper = binding.passwordWrapper;
-        final Button loginButton = binding.login;
+        final Button loginButton = binding.btnLogin;
+        final Button signUpButton = binding.btnSignUp;
         final ProgressBar loadingProgressBar = binding.loading;
         final ImageView leftMoegirl = binding.imageMoegirlLeft;
         final ImageView rightMoegirl = binding.imageMoegirlRight;
@@ -62,6 +67,7 @@ public class LoginActivity extends AppCompatActivity {
             }
             //只有当用户名和密码都合法时,登录按钮才可点击
             loginButton.setEnabled(loginFormState.isDataValid());
+            signUpButton.setEnabled(loginFormState.isDataValid());
 
             if (loginFormState.getUsernameError() != null) {
                 usernameWrapper.setErrorEnabled(true);
@@ -89,7 +95,7 @@ public class LoginActivity extends AppCompatActivity {
             }
             //若登录成功,则更新UI
             if (loginResult.getSuccess() != null) {
-                updateUiWithUserLoggedIn(loginResult.getSuccess());
+                updateUiWithUserLoggedInDummy(loginResult.getSuccess());
             }
         });
 
@@ -115,7 +121,14 @@ public class LoginActivity extends AppCompatActivity {
 
         loginButton.setOnClickListener(v -> {
             loadingProgressBar.setVisibility(View.VISIBLE);
-            loginViewModel.login(usernameWrapper.getEditText().getText().toString(),
+            /*loginViewModel.login(usernameWrapper.getEditText().getText().toString(),
+                    passwordWrapper.getEditText().getText().toString());*/
+            signIn(usernameWrapper.getEditText().getText().toString(),
+                    passwordWrapper.getEditText().getText().toString());
+        });
+        signUpButton.setOnClickListener(v -> {
+            loadingProgressBar.setVisibility(View.VISIBLE);
+            createAccount(usernameWrapper.getEditText().getText().toString(),
                     passwordWrapper.getEditText().getText().toString());
         });
         //软键盘的回车登录功能
@@ -129,13 +142,73 @@ public class LoginActivity extends AppCompatActivity {
 
     }
 
-    private void updateUiWithUserLoggedIn(LoggedInUserView model) {
+    private void createAccount(String email, String password) {
+        mAuth.createUserWithEmailAndPassword(email, password)
+                .addOnCompleteListener(this, task -> {
+                    if (task.isSuccessful()) {
+                        Log.d("LoginActivity", "createUserWithEmail:success");
+                        FirebaseUser user = mAuth.getCurrentUser();
+                        updateUiWithUserSignedUp(user);
+                    } else {
+                        Log.w("LoginActivity", "createUserWithEmail:failure", task.getException());
+                        updateUiWithUserSignedUp(null);
+                    }
+                });
+    }
+    private void signIn(String email, String password) {
+        mAuth.signInWithEmailAndPassword(email, password)
+            .addOnCompleteListener(this, task -> {
+                if (task.isSuccessful()) {
+                    Log.d("LoginActivity", "signInWithEmail:success");
+                    FirebaseUser user = mAuth.getCurrentUser();
+                    updateUiWithUserLoggedIn(user);
+                } else {
+                    Log.w("LoginActivity", "signInWithEmail:failure", task.getException());
+                    updateUiWithUserLoggedIn(null);
+                }
+            });
+    }
+
+    private void updateUiWithUserLoggedIn(FirebaseUser user) {
+        binding.loading.setVisibility(View.GONE);
+        if(user == null){
+            String promptFailed = "登录失败!";
+            Toast.makeText(getApplicationContext(), promptFailed, Toast.LENGTH_LONG).show();
+        }
+        else {
+            String prompt = "邮箱：" + user.getEmail() + " 登录成功!";
+            Toast.makeText(getApplicationContext(), prompt, Toast.LENGTH_LONG).show();
+            //用户登录成功后结束当前activity跳转到MainActivity
+            finish();
+            Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+            startActivity(intent);
+        }
+    }
+
+    private void updateUiWithUserLoggedInDummy(LoggedInUserView model) {
         String welcome = getString(R.string.welcome) + model.getDisplayName();
         Toast.makeText(getApplicationContext(), welcome, Toast.LENGTH_LONG).show();
         //用户登录成功后结束当前activity跳转到MainActivity
         finish();
         Intent intent = new Intent(LoginActivity.this, MainActivity.class);
         startActivity(intent);
+    }
+
+    private void updateUiWithUserSignedUp(FirebaseUser user) {
+        binding.loading.setVisibility(View.GONE);
+        if(user == null){
+            String promptFailed = "注册失败!";
+            Toast.makeText(getApplicationContext(), promptFailed, Toast.LENGTH_LONG).show();
+        }
+        else {
+            String prompt = "邮箱：" + user.getEmail() + " 注册成功!";
+            Toast.makeText(getApplicationContext(), prompt, Toast.LENGTH_LONG).show();
+            //用户注册成功后清除输入框内容，并清空错误提示
+            binding.usernameWrapper.getEditText().setText("");
+            binding.passwordWrapper.getEditText().setText("");
+            binding.usernameWrapper.setErrorEnabled(false);
+            binding.passwordWrapper.setErrorEnabled(false);
+        }
     }
 
     private void showLoginFailed(@StringRes Integer errorString) {

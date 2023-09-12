@@ -1,4 +1,4 @@
-package com.sweeneyliu.activitytest.ui.home;
+package com.sweeneyliu.activitytest.ui.http;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -10,22 +10,22 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
-import com.sweeneyliu.activitytest.databinding.FragmentHomeBinding;
+import com.sweeneyliu.activitytest.databinding.FragmentHttpBinding;
 
-public class HomeFragment extends Fragment {
+public class HttpFragment extends Fragment {
 
-    private FragmentHomeBinding binding;
+    private FragmentHttpBinding binding;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
-        HomeViewModel homeViewModel =
-                new ViewModelProvider(this).get(HomeViewModel.class);
+        HttpViewModel httpViewModel =
+                new ViewModelProvider(this).get(HttpViewModel.class);
 
-        binding = FragmentHomeBinding.inflate(inflater, container, false);
+        binding = FragmentHttpBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
 
-        final TextView textView = binding.textHome;
-        homeViewModel.getText().observe(getViewLifecycleOwner(), textView::setText);
+        final TextView textView = binding.textDashboard;
+        httpViewModel.getText().observe(getViewLifecycleOwner(), textView::setText);
         return root;
     }
 

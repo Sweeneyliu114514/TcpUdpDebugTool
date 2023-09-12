@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    app:startDestination="@+id/tcpUdpFragment">
+
+    <fragment
+        android:id="@+id/tcpUdpFragment"
+        android:name="com.sweeneyliu.activitytest.ui.tcpudp.TcpUdpFragment"
+        android:label="@string/title_tcp_udp"
+        tools:layout="@layout/fragment_tcp_udp" >
+        <action
+            android:id="@+id/createTcpUdpSessionAction"
+            app:destination="@id/tcpUdpSessionSettingsGraph">
+            <argument
+                android:name="initialSessionConfig"
+                app:argType="com.sweeneyliu.activitytest.ui.tcpudp.TcpUdpSessionConfig" />
+        </action>
+    </fragment>
+
+    <fragment
+        android:id="@+id/httpFragment"
+        android:name="com.sweeneyliu.activitytest.ui.http.HttpFragment"
+        android:label="@string/title_http"
+        tools:layout="@layout/fragment_http" />
+
+    <fragment
+        android:id="@+id/serialFragment"
+        android:name="com.sweeneyliu.activitytest.ui.serial.SerialFragment"
+        android:label="@string/title_serial"
+        tools:layout="@layout/fragment_serial" />
+    <navigation android:id="@+id/tcpUdpSessionSettingsGraph"
+        app:startDestination="@id/tcpUdpSessionFragment">
+        <fragment
+            android:id="@+id/tcpUdpSessionSettingsFragment"
+            android:name="com.sweeneyliu.activitytest.ui.tcpudp.TcpUdpSessionSettingsFragment" />
+        <fragment
+            android:id="@+id/tcpUdpSessionFragment"
+            android:name="com.sweeneyliu.activitytest.ui.tcpudp.TcpUdpSessionFragment"
+            tools:layout="@layout/fragment_tcp_udp_session" >
+            <action
+                android:id="@+id/setupTcpUdpSessionSettingsAction"
+                app:destination="@id/tcpUdpSessionSettingsFragment" />
+            <argument
+                android:name="initialSessionConfig"
+                app:argType="com.sweeneyliu.activitytest.ui.tcpudp.TcpUdpSessionConfig" />
+        </fragment>
+    </navigation>
+</navigation>

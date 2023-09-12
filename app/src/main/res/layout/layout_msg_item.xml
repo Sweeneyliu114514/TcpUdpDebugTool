@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical"
+    android:layout_margin="0dp"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <!-- 接收到的消息  -->
+    <LinearLayout
+        android:id="@+id/layout_msg_item_received"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="start"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/msg_received_description"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_gravity="start"
+            android:textSize="12sp"
+            tools:text="remote1" />
+
+        <LinearLayout
+            android:id="@+id/layout_msg_item_received_content"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/shape_msg_received">
+            <TextView
+                android:id="@+id/msg_received_content"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_margin="8dp"
+                tools:text="message_received" />
+
+        </LinearLayout>
+    </LinearLayout>
+    <!-- 发送的的消息  -->
+    <LinearLayout
+        android:id="@+id/layout_msg_item_sent"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/msg_sent_description"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_gravity="end"
+            android:textSize="12sp"
+            tools:text="local1" />
+
+        <LinearLayout
+            android:id="@+id/layout_msg_item_sent_content"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="start"
+            android:background="@drawable/shape_msg_sent">
+
+            <TextView
+                android:id="@+id/msg_sent_content"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_margin="8dp"
+                tools:text="message_sent" />
+
+        </LinearLayout>
+    </LinearLayout>
+
+</LinearLayout>
