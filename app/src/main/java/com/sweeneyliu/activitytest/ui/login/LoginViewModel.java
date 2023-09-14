@@ -68,7 +68,7 @@ public class LoginViewModel extends ViewModel {
     }
 
     private boolean isPasswordValid(String password) {
-        //密码非空白字符长度大于5则返回true
-        return password != null && password.trim().length() >= 5;
+        //密码非空白字符长度大于等于8则返回true
+        return password != null && password.trim().length() >= 8;
     }
 }

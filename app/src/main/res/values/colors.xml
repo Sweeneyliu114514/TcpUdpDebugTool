@@ -18,4 +18,6 @@
     <color name="lime_700">#FF827717</color>
     <color name="background_day">#FFF1F1F1</color>
     <color name="background_night">#FF121212</color>
+    <color name="surface_day">#FFF1F1F1</color>
+    <color name="surface_night">#FF1F1F1F</color>
 </resources>

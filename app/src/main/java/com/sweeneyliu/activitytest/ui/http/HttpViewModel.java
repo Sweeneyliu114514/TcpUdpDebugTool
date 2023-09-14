@@ -10,7 +10,7 @@ public class HttpViewModel extends ViewModel {
 
     public HttpViewModel() {
         mText = new MutableLiveData<>();
-        mText.setValue("This is dashboard fragment");
+        mText.setValue("Http Fragment");
     }
 
     public LiveData<String> getText() {

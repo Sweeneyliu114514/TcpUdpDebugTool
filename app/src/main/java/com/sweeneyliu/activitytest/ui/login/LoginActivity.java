@@ -128,6 +128,7 @@ public class LoginActivity extends AppCompatActivity {
         });
         signUpButton.setOnClickListener(v -> {
             loadingProgressBar.setVisibility(View.VISIBLE);
+            Log.d("LoginActivity", "当前是否已有用户登录：" + (mAuth.getCurrentUser() != null));
             createAccount(usernameWrapper.getEditText().getText().toString(),
                     passwordWrapper.getEditText().getText().toString());
         });

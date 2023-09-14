@@ -42,9 +42,9 @@ public class TcpUdpFragment extends Fragment {
                 new ViewModelProvider(this).get(TcpUdpViewModel.class);
 
 
-        binding.promptText.setText(getLocalIPAddress() == null
+        binding.promptText.setText(getLocalIPAddress().equals("")
                 ? "无法获取本机IP地址，请检查网络连接" : "本地IP地址：" + getLocalIPAddress());
-        binding.btnRefreshIp.setOnClickListener(v -> binding.promptText.setText(getLocalIPAddress() == null
+        binding.btnRefreshIp.setOnClickListener(v -> binding.promptText.setText(getLocalIPAddress().equals("")
                 ? "无法获取本机IP地址，请检查网络连接" : "本地IP地址：" + getLocalIPAddress()));
         // 表单的文本观察者，当表单文本发生变化时，调用ViewModel中的tcpUdpFormDataChanged方法更新状态
         TextWatcher afterTextChangedListener = new TextWatcher() {
@@ -97,7 +97,7 @@ public class TcpUdpFragment extends Fragment {
                         //若选择了TCP客户端模式，则禁用本地端口的输入
                         binding.localPortWrapper.setEnabled(false);
                         break;
-                    case "UDP模式":
+                    case "UDP":
                         binding.localPortWrapper.setEnabled(true);
                         binding.remoteIPWrapper.setEnabled(true);
                         binding.remotePortWrapper.setEnabled(true);
@@ -122,6 +122,7 @@ public class TcpUdpFragment extends Fragment {
         // 将该对象作为SafeArgs的参数传递给TcpUdpSessionFragment
         binding.btnNewTcpudpSession.setOnClickListener(v -> {
             String mode = binding.tcpudpMode.getText().toString();
+            String localIp = getLocalIPAddress();
             String remoteIp = binding.remoteIP.getText().toString().equals("") ?
                     "0" : Objects.requireNonNull(binding.remoteIP.getText()).toString();
             int localPort = Integer.parseInt(binding.localPort.getText().toString().equals("") ?
@@ -129,7 +130,7 @@ public class TcpUdpFragment extends Fragment {
             int remotePort = Integer.parseInt(binding.remotePort.getText().toString().equals("") ?
                     "0" : Objects.requireNonNull(binding.remotePort.getText()).toString());
             TcpUdpSessionConfig config = new TcpUdpSessionConfig
-                    (mode, localPort, remoteIp, remotePort);
+                    (mode, localIp, localPort, remoteIp, remotePort);
             TcpUdpFragmentDirections.CreateTcpUdpSessionAction action =
                     TcpUdpFragmentDirections.createTcpUdpSessionAction(config);
             navController.navigate(action);
@@ -181,11 +182,11 @@ public class TcpUdpFragment extends Fragment {
             }
             // 如果出去loopback回环地之外无其它地址了，那就回退到原始方案
             return candidateAddress == null ?
-                    null : candidateAddress.getHostAddress();
+                    "" : candidateAddress.getHostAddress();
         } catch (SocketException e) {
             e.printStackTrace();
             Log.w("getLocalHostExactAddress", "无法找到合适的网卡接口");
         }
-        return null;
+        return "";
     }
 }

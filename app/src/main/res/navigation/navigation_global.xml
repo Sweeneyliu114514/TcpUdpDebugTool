@@ -25,10 +25,10 @@
         tools:layout="@layout/fragment_http" />
 
     <fragment
-        android:id="@+id/serialFragment"
-        android:name="com.sweeneyliu.activitytest.ui.serial.SerialFragment"
-        android:label="@string/title_serial"
-        tools:layout="@layout/fragment_serial" />
+        android:id="@+id/userSpaceFragment"
+        android:name="com.sweeneyliu.activitytest.ui.userspace.UserSpaceFragment"
+        android:label="@string/title_user_settings"
+        tools:layout="@layout/fragment_user_space" />
     <navigation android:id="@+id/tcpUdpSessionSettingsGraph"
         app:startDestination="@id/tcpUdpSessionFragment">
         <fragment

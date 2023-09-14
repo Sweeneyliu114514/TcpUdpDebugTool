@@ -1,7 +1,6 @@
 package com.sweeneyliu.activitytest;
 
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -29,7 +28,7 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(TopAppBar);
         BottomNavigationView navView = findViewById(R.id.nav_view);
         appBarConfiguration = new AppBarConfiguration.Builder(
-                R.id.tcpUdpFragment, R.id.httpFragment, R.id.serialFragment)
+                R.id.tcpUdpFragment, R.id.httpFragment, R.id.userSpaceFragment)
                 .build();
         // Android Developer Guide中推荐使用FragmentContainerView代替Fragment作为NavHostFragment
         /*NavHostFragment navHostFragmentGlobal = (NavHostFragment) getSupportFragmentManager().
@@ -42,7 +41,7 @@ public class MainActivity extends AppCompatActivity {
         navController.addOnDestinationChangedListener((controller, destination, arguments) -> {
             if (destination.getId() == R.id.tcpUdpFragment
                     || destination.getId() == R.id.httpFragment
-                    || destination.getId() == R.id.serialFragment) {
+                    || destination.getId() == R.id.userSpaceFragment) {
                 navView.setVisibility(View.VISIBLE);
             } else {
                 navView.setVisibility(View.GONE);

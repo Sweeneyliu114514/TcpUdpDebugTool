@@ -13,7 +13,7 @@
         <item name="android:statusBarColor">?attr/colorPrimary</item>
         <!-- Customize your theme here. -->
         <item name="android:colorBackground">@color/background_night</item>
-        <item name="colorSurface">@color/background_night</item>
+        <item name="colorSurface">@color/surface_night</item>
     </style>
 
     <style name="Theme.Splash" parent="Theme.SplashScreen">

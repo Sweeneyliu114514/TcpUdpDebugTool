@@ -7,7 +7,7 @@
     <string name="action_sign_up">注册</string>
     <string name="welcome">"欢迎 !"</string>
     <string name="invalid_username">请输入有效的邮箱地址!</string>
-    <string name="invalid_password">密码长度至少为5位!</string>
+    <string name="invalid_password">密码长度至少为8位!</string>
     <string name="login_failed">登录失败!</string>
     <string name="title_activity_main">MainActivity</string>
     <string name="title_tcp_udp">TCP/UDP</string>
@@ -23,7 +23,7 @@
     <string-array name="tcpudp_mode_list">
         <item>TCP服务器</item>
         <item>TCP客户端</item>
-        <item>UDP模式</item>
+        <item>UDP</item>
     </string-array>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
@@ -46,4 +46,8 @@
     <string name="invalid_remote_port">请输入1至65535的整数</string>
     <string name="btn_send_msg">发送</string>
     <string name="prompt_send_msg">输入要发送的消息</string>
+    <string name="clear_msg_record">清除记录</string>
+    <string name="setup_receive">16进制接收</string>
+    <string name="setup_send">16进制发送</string>
+    <string name="select_target_host">选择目标主机</string>
 </resources>

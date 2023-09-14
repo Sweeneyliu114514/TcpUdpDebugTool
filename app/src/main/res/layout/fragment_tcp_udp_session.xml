@@ -6,17 +6,53 @@
     android:layout_height="match_parent"
     tools:context=".ui.tcpudp.TcpUdpSessionFragment">
 
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/target_host_wrapper"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="6dp"
+        android:layout_marginEnd="60dp"
+        android:layout_marginBottom="10dp"
+        android:hint="@string/select_target_host"
+        app:boxBackgroundColor="?attr/colorOnPrimarySurface"
+        app:boxCornerRadiusBottomEnd="8dp"
+        app:boxCornerRadiusBottomStart="8dp"
+        app:boxCornerRadiusTopEnd="8dp"
+        app:boxCornerRadiusTopStart="8dp"
+        app:layout_constraintBottom_toTopOf="@id/recyclerview_tcpudp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:startIconDrawable="@drawable/ic_host_24dp">
+
+        <AutoCompleteTextView
+            android:id="@+id/target_host"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:drawablePadding="-10dp"
+            android:inputType="none"
+            tools:ignore="LabelFor,SpeakableTextPresentCheck,VisualLintTextFieldSize" />
+
+    </com.google.android.material.textfield.TextInputLayout>
+
 
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/tcpUdp_messages"
+        android:id="@+id/recyclerview_tcpudp"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginTop="60dp"
-        android:layout_marginBottom="80dp"
+        android:layout_marginStart="10dp"
+        android:layout_marginEnd="10dp"
+        android:layout_marginBottom="120dp"
+        android:background="@drawable/shape_recyclerview"
+        android:paddingTop="10dp"
+        android:paddingBottom="50dp"
+        android:scrollbars="vertical"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@id/target_host_wrapper" />
 
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/msg_input_wrapper"
@@ -25,6 +61,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="10dp"
         android:layout_marginEnd="60dp"
+        android:layout_marginBottom="8dp"
         android:hint="@string/prompt_send_msg"
         app:boxBackgroundColor="?attr/colorOnPrimarySurface"
         app:boxCornerRadiusBottomEnd="8dp"
@@ -33,8 +70,7 @@
         app:boxCornerRadiusTopStart="8dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tcpUdp_messages">
+        app:layout_constraintStart_toStartOf="parent">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/msg_input"
@@ -54,9 +90,49 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/msg_input_wrapper"
-        app:layout_constraintTop_toBottomOf="@+id/tcpUdp_messages"
+        app:layout_constraintTop_toBottomOf="@id/btn_clear_msg_record"
         app:tint="?attr/colorPrimary"
+        tools:ignore="SpeakableTextPresentCheck"
         tools:text="send" />
+    <Button
+        android:id="@+id/btn_setup_send_radix"
+        android:layout_width="120dp"
+        android:layout_height="wrap_content"
+        android:text="@string/setup_send"
+        app:layout_constraintStart_toStartOf="@id/recyclerview_tcpudp"
+        app:layout_constraintEnd_toStartOf="@id/btn_setup_receive_radix"
+        app:layout_constraintTop_toBottomOf="@id/recyclerview_tcpudp"
+        app:layout_constraintBottom_toTopOf="@id/msg_input_wrapper"/>
+    <Button
+        android:id="@+id/btn_setup_receive_radix"
+        android:layout_width="120dp"
+        android:layout_height="wrap_content"
+        android:text="@string/setup_receive"
+        app:layout_constraintStart_toEndOf="@+id/btn_setup_send_radix"
+        app:layout_constraintBottom_toTopOf="@+id/msg_input_wrapper"
+        app:layout_constraintEnd_toStartOf="@id/btn_clear_msg_record"
+        app:layout_constraintTop_toBottomOf="@id/recyclerview_tcpudp" />
+    <Button
+        android:id="@+id/btn_clear_msg_record"
+        android:layout_width="120dp"
+        android:layout_height="wrap_content"
+        android:text="@string/clear_msg_record"
+        app:layout_constraintBottom_toTopOf="@+id/msg_input_wrapper"
+        app:layout_constraintEnd_toEndOf="@id/recyclerview_tcpudp"
+        app:layout_constraintTop_toBottomOf="@id/recyclerview_tcpudp" />
+
+    <ImageButton
+        android:id="@+id/btn_disconnect_host"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:backgroundTint="?android:attr/colorBackground"
+        android:src="@drawable/ic_disconnect_40dp"
+        app:layout_constraintBottom_toTopOf="@+id/recyclerview_tcpudp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/target_host_wrapper"
+        app:layout_constraintTop_toTopOf="parent"
+        app:tint="?attr/colorPrimary"
+        tools:ignore="SpeakableTextPresentCheck" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

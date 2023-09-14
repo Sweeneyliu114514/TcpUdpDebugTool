@@ -1,14 +1,14 @@
-package com.sweeneyliu.activitytest.ui.serial;
+package com.sweeneyliu.activitytest.ui.userspace;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
-public class SerialViewModel extends ViewModel {
+public class UserSpaceViewModel extends ViewModel {
 
     private final MutableLiveData<String> mText;
 
-    public SerialViewModel() {
+    public UserSpaceViewModel() {
         mText = new MutableLiveData<>();
         mText.setValue("This is notifications fragment");
     }

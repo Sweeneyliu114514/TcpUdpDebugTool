@@ -6,8 +6,9 @@ import android.os.Parcelable;
 import androidx.annotation.Nullable;
 
 public class TcpUdpSessionConfig implements Parcelable{
-    //该类用于存储TCP/UDP初始会话配置，包括会话模式（TCP/UDP）、本地端口、远程IP地址、远程端口
+    //该类用于存储TCP/UDP初始会话配置，包括会话模式（TCP/UDP）、本地IP地址、本地端口、远程IP地址、远程端口
     private final String mode;
+    private final String localIp;
     private final int localPort;
     @Nullable
     private final String remoteIp;
@@ -15,20 +16,25 @@ public class TcpUdpSessionConfig implements Parcelable{
 
     protected TcpUdpSessionConfig(Parcel in) {
         mode = in.readString();
+        localIp = in.readString();
         localPort = in.readInt();
         remoteIp = in.readString();
         remotePort = in.readInt();
     }
 
-    public TcpUdpSessionConfig(String mode, int localPort, @Nullable String remoteIp, int remotePort) {
+    public TcpUdpSessionConfig(String mode,String localIp, int localPort, @Nullable String remoteIp, int remotePort) {
         this.mode = mode;
+        this.localIp = localIp;
         this.localPort = localPort;
         this.remoteIp = remoteIp;
         this.remotePort = remotePort;
     }
-    // 四个成员的getter方法
+    // getter方法
     public String getMode() {
         return mode;
+    }
+    public String getLocalIp() {
+        return localIp;
     }
     public int getLocalPort() {
         return localPort;
@@ -43,6 +49,7 @@ public class TcpUdpSessionConfig implements Parcelable{
     @Override
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeString(mode);
+        dest.writeString(localIp);
         dest.writeInt(localPort);
         dest.writeString(remoteIp);
         dest.writeInt(remotePort);

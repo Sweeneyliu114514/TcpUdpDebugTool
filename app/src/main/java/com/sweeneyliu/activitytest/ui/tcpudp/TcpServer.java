@@ -1,5 +1,7 @@
 package com.sweeneyliu.activitytest.ui.tcpudp;
 
+import com.sweeneyliu.activitytest.utils.HexStringByeUtil;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -12,41 +14,51 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class TcpServer {
-
     private static final String TAG = "TcpServer";
     /**
      * 饿汉式单例模式
      */
-    private static TcpServer TcpServerInstance = new TcpServer();
-    private TcpServer() {};
+    private static final TcpServer TcpServerInstance = new TcpServer();
+    private TcpServer() {}
     public static TcpServer getInstance() {
         return TcpServerInstance;
     }
-    private OnListener onListener;
+    private OnServerListener onServerListener;
     /**
-     * OnListener作为监听接口供外部调用
+     * OnServerListener作为监听接口供外部调用
      */
-    public interface OnListener {
-        void onStart();
-
-        void onNewClient(String serverIp, String clientIp, int count);
-
-        void onError(Throwable e, String message);
-
-        void onMessage(String ip, String message);
-
-        void onAutoReplyMessage(String ip, String message);
-
-        void onClientDisConnect(String ip);
-
-        void onConnectTimeOut(String ip);
+    public interface OnServerListener {
+        void onStart(int port); // 服务器启动监听时回调
+        void onNewClient(String clientIp, int clientPort, int count);// 有新的客户端连接时回调
+        void onError(Throwable e);// 服务器启动失败时回调
+        void onReceiveMessage(String messageContent, String ip, int port);// 服务器接收到客户端发送的消息时回调
+        void onSendMessage(String messageContent, String ip, int port);// 服务器发送消息时回调
+        void onAutoReplyMessage(String ip, String message);// 服务器自动回复客户端发送的消息时回调
+        void onClientDisConnect(String ip);// 客户端断开连接时回调
+        void onConnectTimeOut(String ip);// 客户端连接超时时回调
+        void onDisconnect(String... selectedIps);// 服务器主动与指定客户端断开连接时回调
     }
     /**
      * TcpServer类对外提供的设置监听接口的方法
      */
-    public void setOnListener(OnListener onListener) {
-        this.onListener = onListener;
+    public void setServerOnListener(OnServerListener onServerListener) {
+        this.onServerListener = onServerListener;
     }
+    /**
+     * 服务器发送消息时是否以16进制发送,true为16进制发送，false为字符串发送
+     */
+    private boolean sendRadixHex = false;
+    public void setSendRadixHex(boolean sendRadixHex) {
+        this.sendRadixHex = sendRadixHex;
+    }
+    /**
+     * 服务器接收消息时是否以16进制接收,true为16进制接收，false为字符串接收
+     */
+    private boolean receiveRadixHex = false;
+    public void setReceiveRadixHex(boolean receiveRadixHex) {
+        this.receiveRadixHex = receiveRadixHex;
+    }
+
     /**
      * 服务器监听线程
      */
@@ -66,7 +78,7 @@ public class TcpServer {
     /**
      * 已连接的客户端对应的接收处理线程列表
      */
-    private List<ClientHandler> connectedClientHandlerList = new ArrayList<>();
+    private List<ConnectedClientHandler> connectedClientHandlerList = new ArrayList<>();
     /**
      * 设置服务器监听端口
      */
@@ -78,39 +90,37 @@ public class TcpServer {
      * 启动TCP服务器
      */
     public void start() {
-        if (onListener == null) {
+        if (onServerListener == null) {
             throw new RuntimeException("请设置OnListener");
         }
         if (serverListeningPort == 0) {
-            onListener.onError(new RuntimeException("请设置port"), "请设置port");
+            onServerListener.onError(new RuntimeException("请设置port"));
             return;
         }
         if (serverSocketThread == null) {
             serverSocketThread = new ServerSocketThread();
             new Thread(serverSocketThread).start();
-        } else {
-            onListener.onError(new RuntimeException("服务端已经启动过了"), "服务端已经启动过了");
-        }
+        } else onServerListener.onError(new RuntimeException("服务端已经启动过了"));
     }
     /**
      * 关闭TCP服务器
      */
     public void stop() {
-        if (onListener == null) {
+        if (onServerListener == null) {
             throw new RuntimeException("请设置OnListener");
         }
         if (serverSocketThread != null) {
             serverSocketThread.close();
             serverSocketThread = null;
         } else {
-            onListener.onError(new RuntimeException("服务端已经关闭"), "服务端已经关闭");
+            onServerListener.onError(new RuntimeException("服务端已经关闭"));
         }
     }
     /**
      * 给选定的已连接客户端IP地址发送消息
      */
     public void sendMessage(String message, String... selectedIPs) {
-        if (onListener == null) {
+        if (onServerListener == null) {
             throw new RuntimeException("请设置OnListener");
         }
         serverMessageToSend = message;
@@ -121,22 +131,39 @@ public class TcpServer {
             // 若没有选定的IP，给所有已连接客户端发送消息
             sendMessageToAll();
         } else {
-            for (Socket s : connectedClientSocketList) {
-                for (String ip : selectedIPs) {
-                    if (ip.equals(s.getInetAddress().getHostAddress())) {
-                        PrintWriter out;
-                        try {
-                            // 使用autoFlush=true，不需要手动flush()即会自动刷新缓冲区
-                            out = new PrintWriter(new BufferedWriter(
-                                    new OutputStreamWriter(s.getOutputStream())), true);
-                            // 使用println()方法发送消息，不需要手动添加换行符
-                            out.println(serverMessageToSend);
-                        } catch (IOException e) {
-                            e.printStackTrace();
+            new Thread(() -> {
+                for (Socket s : connectedClientSocketList) {
+                    for (String ip : selectedIPs) {
+                        if (ip.equals(s.getInetAddress().getHostAddress())) {
+                            if (sendRadixHex) {
+                                // 16进制发送
+                                try {
+                                    s.getOutputStream().write(HexStringByeUtil.
+                                            hexStringToByteArray(serverMessageToSend));
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                            else { // 字符串发送
+                                PrintWriter out;
+                                try {
+                                    // 使用autoFlush=true，不需要手动flush()即会自动刷新缓冲区
+                                    out = new PrintWriter(new BufferedWriter(
+                                            new OutputStreamWriter(s.getOutputStream())), true);
+                                    // 使用println()方法发送消息，不需要手动添加换行符
+                                    out.println(serverMessageToSend);
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+                            }
                         }
                     }
                 }
-            }
+                // 通知监听器服务器发送的消息内容以及服务器自身IP地址和发送的端口
+                onServerListener.onSendMessage(serverMessageToSend,
+                        connectedClientSocketList.get(0).getLocalAddress().getHostAddress(),
+                        connectedClientSocketList.get(0).getLocalPort());
+            }).start();
         }
     }
 
@@ -147,20 +174,87 @@ public class TcpServer {
         if (!check()) {
             return;
         }
+        new Thread(()->{
+            for (int i = 0, size = connectedClientSocketList.size(); i < size; i++) {
+                Socket socket = connectedClientSocketList.get(i);
+                if (sendRadixHex) {
+                    // 16进制发送
+                    try {
+                        socket.getOutputStream().write(HexStringByeUtil.
+                                hexStringToByteArray(serverMessageToSend));
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+                else { // 字符串发送
+                    PrintWriter out;
+                    try {
+                        out = new PrintWriter(new BufferedWriter(new OutputStreamWriter(
+                                socket.getOutputStream())), true);
+                        out.println(serverMessageToSend);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+            // 通知监听器服务器发送的消息内容以及服务器自身IP地址和发送的端口
+            onServerListener.onSendMessage(serverMessageToSend,
+                    connectedClientSocketList.get(0).getLocalAddress().getHostAddress(),
+                    connectedClientSocketList.get(0).getLocalPort());
+        }).start();
+    }
+    /**
+     * 断开与指定的客户端的连接
+     */
+    public void disconnect(String... selectedIps){
+        if (onServerListener == null) {
+            throw new RuntimeException("请设置OnListener");
+        }
+        if (selectedIps == null || selectedIps.length == 0) {
+            // 若没有选定的IP，将所有已连接客户端断开连接
+            disconnectAll();
+        }
+        else{
+            for (Socket s : connectedClientSocketList) {
+                for (String ip : selectedIps) {
+                    if (ip.equals(s.getInetAddress().getHostAddress())) {
+                        try {
+                            s.close();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }
+            connectedClientHandlerList.clear();
+            connectedClientSocketList.clear();
+            // 通知监听器服务器主动与指定客户端断开连接
+            onServerListener.onDisconnect(selectedIps);
+        }
+    }
+    /**
+     * 断开所有已连接的客户端
+     */
+    private void disconnectAll() {
+        if (!check()) {
+            return;
+        }
         for (int i = 0, size = connectedClientSocketList.size(); i < size; i++) {
             Socket socket = connectedClientSocketList.get(i);
-            PrintWriter out;
             try {
-                out = new PrintWriter(new BufferedWriter(new OutputStreamWriter(socket.getOutputStream())), true);
-                out.println(serverMessageToSend);
+                socket.close();
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
+        connectedClientSocketList.clear();
+        connectedClientHandlerList.clear();
+        // 通知监听器服务器主动与所有已连接的客户端断开连接
+        onServerListener.onDisconnect();
     }
 
     /**
-     * ServerSocketThread类用于监听客户端的连接
+     * ServerSocketThread类用于监听客户端，实现多客户端连接并管理
     */
     class ServerSocketThread implements Runnable {
         private ServerSocket serverSocket;
@@ -178,8 +272,8 @@ public class TcpServer {
         public void run() {
             try {
                 serverSocket = new ServerSocket(serverListeningPort);
-                if (onListener != null) {
-                    onListener.onStart();
+                if (onServerListener != null) {
+                    onServerListener.onStart(serverListeningPort);
                 }
                 while (isListening) {
                     // accept()方法阻塞等待客户端连接
@@ -201,28 +295,28 @@ public class TcpServer {
                     // 将新的Socket添加到已连接的客户端列表中
                     connectedClientSocketList.add(socket);
                     // 通知监听器有新的客户端连接
-                    if (onListener != null) {
-                        onListener.onNewClient(socket.getLocalAddress().getHostAddress(),
-                                socket.getInetAddress().getHostAddress(), connectedClientSocketList.size());
+                    if (onServerListener != null) {
+                        onServerListener.onNewClient(socket.getInetAddress().getHostAddress(),
+                                socket.getPort(), connectedClientSocketList.size());
                     }
                     // 启动新的接收处理线程处理接收到的Socket
-                    ClientHandler clientHandler = new ClientHandler(socket);
+                    ConnectedClientHandler clientHandler = new ConnectedClientHandler(socket);
                     new Thread(clientHandler).start();
                     // 将新的接收处理线程添加到已连接的客户端对应的接收处理线程列表中
                     connectedClientHandlerList.add(clientHandler);
                 }
             } catch (Exception e) {
-                if (onListener != null) {
-                    onListener.onError(new RuntimeException("服务端已经启动"), "服务端已经启动");
+                if (onServerListener != null) {
+                    onServerListener.onError(new RuntimeException("服务端已经启动"));
                 }
             }
         }
     }
 
     /**
-     * ClientHandler类用于接收处理客户端发送的消息
+     * ConnectedClientHandler类用于接收客户端消息、生成提示信息、自动回复消息
      */
-    class ClientHandler implements Runnable {
+    class ConnectedClientHandler implements Runnable {
         private String localAddress;// 服务器IP地址
         private String clientAddress;// 客户端IP地址
         private boolean isHandling = true;
@@ -239,7 +333,7 @@ public class TcpServer {
             }
         }
 
-        public ClientHandler(Socket socket) {
+        public ConnectedClientHandler(Socket socket) {
             this.socket = socket;
             localAddress = socket.getLocalAddress().getHostAddress();
             clientAddress = socket.getInetAddress().getHostAddress();
@@ -258,10 +352,20 @@ public class TcpServer {
             while (isHandling) {
                 try {
                     String receivedMessage;
-                    if ((receivedMessage = reader.readLine()) != null) {
+                    if(receiveRadixHex){//16进制接收
+                        byte[] buffer = new byte[1024];
+                        int len = socket.getInputStream().read(buffer);
+                        byte[] data = new byte[len];
+                        System.arraycopy(buffer, 0, data, 0, len);
+                        receivedMessage = HexStringByeUtil.byteArrayToHexString(data);
+                    }
+                    else {//字符串接收
+                        receivedMessage = reader.readLine();
+                    }
+                    if (receivedMessage != null) {
                         // 通知监听器服务器接收到新的客户端发送的消息
-                        if (onListener != null) {
-                            onListener.onMessage(clientAddress, receivedMessage);
+                        if (onServerListener != null) {
+                            onServerListener.onReceiveMessage(receivedMessage, clientAddress, socket.getPort());
                         }
                         if (receivedMessage.equalsIgnoreCase("close")) {
                             // 当客户端发送close消息通知服务器断开连接时，关闭对应的接收处理线程并从已连接列表中移除Socket
@@ -274,14 +378,14 @@ public class TcpServer {
                             reader.close();
                             socket.close();
                             isHandling = false;
-                            if (onListener != null) {
-                                onListener.onClientDisConnect(clientAddress);
+                            if (onServerListener != null) {
+                                onServerListener.onClientDisConnect(clientAddress);
                             }
                         } else {
                             //服务端发送消息，给单个客户端自动回复
                             serverMessageToSend = receivedMessage + "（服务器自动回复）";
-                            if (onListener != null) {
-                                onListener.onAutoReplyMessage(clientAddress, serverMessageToSend);
+                            if (onServerListener != null) {
+                                onServerListener.onAutoReplyMessage(clientAddress, serverMessageToSend);
                             }
                             PrintWriter out = new PrintWriter(new BufferedWriter(
                                     new OutputStreamWriter(socket.getOutputStream())), true);
@@ -291,16 +395,16 @@ public class TcpServer {
                         //客户端断开连接
                         isHandling = false;
                         // 通知监听器客户端断开连接
-                        if (onListener != null) {
-                            onListener.onClientDisConnect(clientAddress);
+                        if (onServerListener != null) {
+                            onServerListener.onClientDisConnect(clientAddress);
                         }
                     }
                 } catch (IOException e) {
                     isHandling = false;
                     e.printStackTrace();
                     // 通知监听器客户端连接超时
-                    if (onListener != null) {
-                        onListener.onConnectTimeOut(clientAddress);
+                    if (onServerListener != null) {
+                        onServerListener.onConnectTimeOut(clientAddress);
                     }
                 }
             }
@@ -320,14 +424,14 @@ public class TcpServer {
 
     private boolean check() {
         if (serverMessageToSend == null || serverMessageToSend.length() == 0) {
-            if (onListener != null) {
-                onListener.onError(new RuntimeException("请输入内容"), "请输入内容");
+            if (onServerListener != null) {
+                onServerListener.onError(new RuntimeException("请输入内容"));
             }
             return false;
         }
         if (connectedClientSocketList == null || connectedClientSocketList.size() == 0) {
-            if (onListener != null) {
-                onListener.onError(new RuntimeException("没有连接中的客户端"), "没有连接中的客户端");
+            if (onServerListener != null) {
+                onServerListener.onError(new RuntimeException("没有连接中的客户端"));
             }
             return false;
         }

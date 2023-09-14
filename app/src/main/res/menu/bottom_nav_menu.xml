@@ -12,8 +12,8 @@
         android:title="@string/title_http" />
 
     <item
-        android:id="@+id/serialFragment"
+        android:id="@+id/userSpaceFragment"
         android:icon="@drawable/ic_serial_24dp"
-        android:title="@string/title_serial" />
+        android:title="@string/title_user_settings" />
 
 </menu>

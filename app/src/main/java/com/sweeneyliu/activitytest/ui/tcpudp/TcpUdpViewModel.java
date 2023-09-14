@@ -31,7 +31,7 @@ public class TcpUdpViewModel extends ViewModel {
                     tcpUdpFormState.setValue(new TcpUdpFormState(selectedMode,true));
                 }
                 break;
-            case "UDP模式":
+            case "UDP":
                 if (!isPortValid(localPort) || !isIpValid(remoteIp) || !isPortValid(remotePort)) {
                     tcpUdpFormState.setValue(new TcpUdpFormState(selectedMode,
                         isPortValid(localPort) ? null : R.string.invalid_local_port,
